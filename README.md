@@ -5,7 +5,6 @@ AWS Solution Architect Exam Notes
 
 
 **Consolidated Billing**
-http://www.imgim.com/screenshot2019-12-25at165856.png
 
 
 
