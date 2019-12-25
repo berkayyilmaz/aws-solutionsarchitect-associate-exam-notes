@@ -110,6 +110,12 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * Snapshots can be copied between different regions in order to prevent disasters.
 * Snapshot creations and deletions must not be manually, it can be automated by “Data Lifecyle Manager” service.
 * Snapshots is taken incrementally. If one of snapshot would be deleted others can relies previous ones.
+* It's possible to change default behaviour of EBS, it can be default encrypted or non encrypted.
+* Whenever you create EBS from snapshot it uses same encryption key as snapshot's.
+* Whenever you want to create encrypted EBS it creates AWS Managed KMS key. KMS Service is regional service.
+* In order to encrypt or decrypt the EBS it has to be requested via KMS.
+* You can not create unencrypted snapshot.
+* EC2 does not have knowledge about encryption process. OS support OS level encryption but it's only available for file system. It does not encrypt for EBS volume.
 
 ## SECURITY GROUPS
 
