@@ -6,11 +6,12 @@ AWS Solution Architect Exam Notes
 
 **Consolidated Billing**
 
+![Consolidated Billing](images/consolidated_billing.png)
 
 
 **Organizational Units Logic**
 
-
+![Organizational Units Logic](images/organizational_units_logic.png)
 
 
 * You can create two accounts into OUs by default but you can create ticket for AWS Support in order to increase limit of accounts.
@@ -18,6 +19,9 @@ AWS Solution Architect Exam Notes
 **Role Switching Between Accounts**
 
 * When you create account with AWS Organization, OrganizationAccountAccessRoles automatically installed in target account(Member Account). 
+
+![Role Switching Between Accounts](images/role_switching_between_accounts.png)
+
 
 **Service Control Policy**
 * Service control policies (SCPs) are one type of policy that you can use to manage your organization. SCPs offer central control over the maximum available permissions for all accounts in your organization, allowing you to ensure your accounts stay within your organization’s access control guidelines. SCPs are available only in an organization that has all features enabled. SCPs aren't available if your organization has enabled only the consolidated billing features. 
@@ -74,9 +78,18 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 
 ```
 * Instance EC2 types: https://aws.amazon.com/ec2/instance-types/
+
+
+![EC2 Types](images/ec2_types.png)
+
+
 * An instance store provides temporary block-level storage for your instance.
 * Benefits of instance store is EC2 can directly access it because of hosting on same host computer.
 * Trade off instances store is that if host computer fails datas will be lost.
+
+![Instance Store](images/instance_store.png)
+
+
 * They are included price in EC2’s except Storage Optimized EC2s.
 * Level of OS and instance, if you restart OS or instance instance store is still available. The only way to remove instance store is stopping instance.
 * EBS has Solid-State Drives(SSD) and Hard Disk Drives(HDD).
@@ -84,6 +97,8 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * IOPS is related with input-output rates, Throughput is related with data read-write rates.
 * If you need more than 80.000 IOPS you need to use instance store.
 * You can change instance type and size whenever you want without data lost.
+
+![EBS Types](images/ebs_types.png)
     
 ## EBS
 
@@ -105,6 +120,8 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * You are not allowed to add explicitly DENY rule. For example, you want to provide EC2 instance access for ten people but one of them has infected computer which you do not want to him access. That’s why you need to set smaller IP CIDR block.
 * It does not required to refer IPs in every time. You can set other security groups as well as inbound rules.
 * SGs are stateful which means there is a data transfer between client and server. Just imagine, when you send a request to website via browser, browser send a request to server and get datas back in order to show them in browser because of outbound traffic rules are opened for 0.0.0.0/0 which means all. As a second example, you connected server with SSH and want to update “yum” package. Please have a look below image for better understanding.
+
+![Security Groups](images/security_groups.png)
 
 ## AMI
 
