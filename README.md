@@ -1,7 +1,7 @@
 # aws-solutionsarchitect-associate-exam-notes
 AWS Solution Architect Exam Notes
 
-# 1- Multi-Account Management and Organizations
+# 1- MULTI-ACCOUNT MANAGEMENT AND ORGANIZATIONS
 
 
 **Consolidated Billing**
@@ -27,6 +27,11 @@ AWS Solution Architect Exam Notes
 * Service control policies (SCPs) are one type of policy that you can use to manage your organization. SCPs offer central control over the maximum available permissions for all accounts in your organization, allowing you to ensure your accounts stay within your organization’s access control guidelines. SCPs are available only in an organization that has all features enabled. SCPs aren't available if your organization has enabled only the consolidated billing features. 
 * The only way to restrict root user is Service Control Policy.
 * Master account can not be restricted with Service Control Policy.
+* Dedicated hosts are EC2 hosts for a given type and size that can be dedicated to you. The number of instances that can run on the host is fixed - depending on the type and size. An on-demand or reserved fee is charged for the dedicated host - there are no charges for instances running on the host. Dedicated hosts are generally used when software is licensed per core/CPU an not compatible with running within a shared cloud environment.
+* Three main reasons for using a dedicated host:
+1. To meet compliance and regulatory requirements
+2. To control instance placement
+3. When bringing your own software license
 
 
 # 2- EC2
@@ -97,8 +102,16 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * IOPS is related with input-output rates, Throughput is related with data read-write rates.
 * If you need more than 80.000 IOPS you need to use instance store.
 * You can change instance type and size whenever you want without data lost.
+* There are 3 types of Placement Groups
+	1. *Cluster PG:* It has well performanced PG type. The best practice is to run EC2 type in the same time and with same types. In Cluster PG, all EC2s can be in one AZ.
+	2. *Partition PG:* It's designed for application availability. If one partition groups fails other will not be affected. Instances deployed into a partition placement group(PPG) are separated into partitions (max of seven per AZ), each occupying isolated racks in AZs/regions. PPG can span multiple AZs in a region. PPGs minimize failure to a partition and give you visibility on placement. PG group is best used for large EC2 infrastructure deployment.
+	3. *Spread PG:* SPGs, are designed for a max of seven instances per AZ that need to be seperated. Each instance occupies a partition and has an isolated fault domain.
 
-![EBS Types](images/ebs_types.png)
+![Cluster PG](images/cluster_pg.png)
+
+![Cluster PG](images/partition_pg.png)	
+
+![Cluster PG](images/spread_pg.png)
     
 ## EBS
 
@@ -116,6 +129,10 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * In order to encrypt or decrypt the EBS it has to be requested via KMS.
 * You can not create unencrypted snapshot.
 * EC2 does not have knowledge about encryption process. OS support OS level encryption but it's only available for file system. It does not encrypt for EBS volume.
+* EBS optimization mode, which was historically optinal and is now the default, adds optimizations and dedicated communications paths for storage and traditional data networking. This allows consistent utilization of both - and is one required feature to support higher performance storage.
+
+![EBS Types](images/ebs_types.png)
+
 
 ## SECURITY GROUPS
 
@@ -146,7 +163,7 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * It’s not able to do dynamic configurations, whenever you already created configurations in AMI you are not able to change it dynamically.
 * The advantage of bootstrapping is dynamically usage, disadvantage of is increasing time of provisioning.
 
-Elastic Network Interfaces (ENI)
+## ELASTIC NETWORK INTERFACES (ENI)
 
 * EC2 instances can be configured with or without public IPv4/6 IP addressing.
 * An elastic network interface (referred to as a network interface in this documentation) is a logical networking component in a VPC that represents a virtual network card.
@@ -172,10 +189,43 @@ Elastic Network Interfaces (ENI)
 * When the instance is terminated private IP is released.
 * ip-x-x-x-x.ec2.internal is the naming convention for a private DNS of EC2 instances.
 
-## Instance Roles
+## INSTANCE ROLES
 
 * EC2 Instance roles are IAM roles that can be “assumed” by EC2 using an intermediary called an instance profile.
 * An instance role sets permissions to an EC2 application or instance. An instance profile is a container for passing IAM roles information to EC2.
 * An instance profile is either created automatically when using the console UI or manually when ısing the CLI.
 * The instance profile allows applications on the EC2 instance to access the credentials from the role using the instance metadata.
 * Instance roles are temporary credentials which has limited time.
+
+## EC2 BILLING MODELS
+	
+1. **Spot Instances:** Spot instances allow consumption of spare AWS capacity for a given instance type and size in a specific AZ. Instances are provided for as long as your bid price is above the spot price, and you only ever pay the spot price. If your bid is exceeded, instances are terminated with a two-minute warning.
+Spot instances are perfect for non-critical workloads, burst workloads, or consistent non-critical jobs that can tolerate interruptions without impacting functionality. Sport is not suitable for long-running workloads that require stability and cannot tolerate interruptions.
+2. **Reserved Instances:** Rserved instances lock in a reduced rate for one or three years. Zonal reserved instances include a capacity reservation. Your commitment incurs costs even if instances aren't launced. Reserved purchases are used for long-running, understood, and consistent worloads. 
+Zonal reservations mean that you can reserve EC2 instances in a chosen Availablity Zone, most importantly, this choice locks you to one instance size.
+
+**Key Facts**
+* Instance size/type have in AZ spot price.
+* Bid more, instance provisioned for spot price. Less = termination.
+* Spot fleets are containers, allowing capacity to be managed.
+* Reservations are zonal(AZ) or regional.
+* One or three years, no upfront, partial upfront, all upfront.
+* You pay regardless of EC2 instance using a reservation.
+* Regional is more flexible - but has no capacity reservation.
+
+**When to use reserved purchases**
+* Base/consistent load
+* Known and understood growth
+* Critical systems/components
+
+**When to use sport instances/fleets**
+* Burst-y workloads
+* Cost-critical, which can cope with interruption
+
+**When to use on-demand**
+* Default or unknown demand
+* Anything in between reserved/spot
+* Short-term workloads that cannot tolerate interruption
+
+# 3- SERVERLESS COMPUTE (LAMBDA)
+
