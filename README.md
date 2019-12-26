@@ -228,4 +228,17 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * Short-term workloads that cannot tolerate interruption
 
 # 3- SERVERLESS COMPUTE (LAMBDA)
+* A microservicesarchitecture is the inverse of a monolithic architecture. Instead of having all system functions in one codebase, components are separated into microservices and operate independetly. A microservice does one thing - and does it well. Operations, updates, and scaling can be done on a per-microservice basis.
+* Microservices operate as independent applications. They allow direct communication between components and the end user. If one part of the system requires more capacity, that service can be scaled and updated as needed.
+* You caccess the AWS Console via a user interface, which is designed for a human being. An API (or application programming interface) is an interface accessed(consumed) by another service or application.
+* An API endpoin hosts on or more APIs and makes them available on a network (private or public internet). APIs remain static - they are abstracted from what the code inside the service is doin. API consumers don't care how things are done - only that the interface works. That's what aloows lower-risk changes.
+* Serverless architecture consists of two main principles, including BaaS(or Backend as a Service), which means using third-party services where possible rather than running your own. Examples include Auth0 or Cognito for authentication and Firebase or DynamoDB for data storage.
+* Serverless also means using an event-driven architecture where possible, using FaaS(or Function as a Service) products to provide application logic. These functions are only active(invoked) when they are needed (when an event is received).
+1. Lambda Function
+* Lambda is an essential service in AWS. It's a Function-as-a-Service product that is a key part of event-driven and serverless architectures.
+* Functions can consume inter API endpoints or other services, functions can be allowed access to a VPC - allowing private resource access, Access to AWS services is provided by the functions's execution role. This role is assumed by Lambda, and temporary security credentials are available to the function via STS.
+* In the Lambda if you want to import external libraries you need to upload file as zip file or from S3 bucket.
+* You can provide environment variable within Lambda.
+* There is time out which is 15 minutes. You can not exceed 15 minutes running time in Lambda.
+2. API Gateway
 
