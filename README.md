@@ -199,9 +199,9 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 
 ## EC2 BILLING MODELS
 	
-1. **Spot Instances:** Spot instances allow consumption of spare AWS capacity for a given instance type and size in a specific AZ. Instances are provided for as long as your bid price is above the spot price, and you only ever pay the spot price. If your bid is exceeded, instances are terminated with a two-minute warning.
+**1. Spot Instances:** Spot instances allow consumption of spare AWS capacity for a given instance type and size in a specific AZ. Instances are provided for as long as your bid price is above the spot price, and you only ever pay the spot price. If your bid is exceeded, instances are terminated with a two-minute warning.
 Spot instances are perfect for non-critical workloads, burst workloads, or consistent non-critical jobs that can tolerate interruptions without impacting functionality. Sport is not suitable for long-running workloads that require stability and cannot tolerate interruptions.
-2. **Reserved Instances:** Rserved instances lock in a reduced rate for one or three years. Zonal reserved instances include a capacity reservation. Your commitment incurs costs even if instances aren't launced. Reserved purchases are used for long-running, understood, and consistent worloads. 
+**2. Reserved Instances:** Reserved instances lock in a reduced rate for one or three years. Zonal reserved instances include a capacity reservation. Your commitment incurs costs even if instances aren't launced. Reserved purchases are used for long-running, understood, and consistent worloads. 
 Zonal reservations mean that you can reserve EC2 instances in a chosen Availablity Zone, most importantly, this choice locks you to one instance size.
 
 **Key Facts**
@@ -228,17 +228,43 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * Short-term workloads that cannot tolerate interruption
 
 # 3- SERVERLESS COMPUTE (LAMBDA)
-* A microservicesarchitecture is the inverse of a monolithic architecture. Instead of having all system functions in one codebase, components are separated into microservices and operate independetly. A microservice does one thing - and does it well. Operations, updates, and scaling can be done on a per-microservice basis.
+* A microservice sarchitecture is the inverse of a monolithic architecture. Instead of having all system functions in one codebase, components are separated into microservices and operate independetly. A microservice does one thing - and does it well. Operations, updates, and scaling can be done on a per-microservice basis.
 * Microservices operate as independent applications. They allow direct communication between components and the end user. If one part of the system requires more capacity, that service can be scaled and updated as needed.
-* You caccess the AWS Console via a user interface, which is designed for a human being. An API (or application programming interface) is an interface accessed(consumed) by another service or application.
+* You can access the AWS Console via a user interface, which is designed for a human being. An API (or application programming interface) is an interface accessed(consumed) by another service or application.
 * An API endpoin hosts on or more APIs and makes them available on a network (private or public internet). APIs remain static - they are abstracted from what the code inside the service is doin. API consumers don't care how things are done - only that the interface works. That's what aloows lower-risk changes.
 * Serverless architecture consists of two main principles, including BaaS(or Backend as a Service), which means using third-party services where possible rather than running your own. Examples include Auth0 or Cognito for authentication and Firebase or DynamoDB for data storage.
 * Serverless also means using an event-driven architecture where possible, using FaaS(or Function as a Service) products to provide application logic. These functions are only active(invoked) when they are needed (when an event is received).
-1. Lambda Function
+* Server maintanance is not needed, on-demand logic, can be scaled to meet demand are benefits of FaaS.
+**1. Lambda Function**
 * Lambda is an essential service in AWS. It's a Function-as-a-Service product that is a key part of event-driven and serverless architectures.
 * Functions can consume inter API endpoints or other services, functions can be allowed access to a VPC - allowing private resource access, Access to AWS services is provided by the functions's execution role. This role is assumed by Lambda, and temporary security credentials are available to the function via STS.
 * In the Lambda if you want to import external libraries you need to upload file as zip file or from S3 bucket.
 * You can provide environment variable within Lambda.
 * There is time out which is 15 minutes. You can not exceed 15 minutes running time in Lambda.
-2. API Gateway
+* If you chose to author a Lambda function from scratch Code and any additional libraries, function name, Runtime, Permissions are necessary.
+**2. API Gateway**
+* API Gateway is a managed API endpoint service. It can be used to create, publish, monitor and secure APIs "a a service". API Gateway can use other. AWS services for compute (FaaS/IaaS) as well as to store and recall data.
+
+![API Gateway](images/api_gateway.png)
+
+* Pricing is based on the number of API Calls, the data transfered and any caching required to improve performance.
+* SOAP, Web Sockets, REST are the API types.
+* API Gateway can access some AWS services directly using proxy mode.
+* APIs can be migrated to API Gateway in a monolithic form, and gradually moved to a microservices architecture and then once components have been fully broken up a serverless & FaaS based architecture.
+
+![API Gateway Architecture](images/api_gateway_architecture.png)
+
+**3. Step Functions**
+* Step Functions is a **serverless visual workflow service** that provides **state machines**. A state machine can orchestrate other AWS services with simple logic, branching and parallel execution, and it maintains a **state**. Workflow steps are knows as **states**, and they can perform work via **tasks**. Step Functions allows for **long-running serverless workflows**. A state machine can be defined using Amazon Sates Language(ASL).
+* State machines can control AWS services.
+* State machines provide simple logic, branching, merges, and parallel execution.
+* SM can informa a state machine of its next state to be executed.
+* SM machines maintain a state
+* SM needs IAM roles.
+* Without Step Functions, Lambda functions could only run for 15 minutes. Lambda functions are stateless. State machines maintain state and allow longer-runnning processes. Step Functions "replaces" SWF with a serverless version.
+
+# 4- CONTAINERS
+* A container is a package that contains an application, libraries, and file system required to run it. Containers run on a container engine that generally runs within single OS, such as Linux. Containers provide the isolation benefits of virtualization but are more lightweight, allowing faster starts and more dense packing within a host.
+
+![Docker Container](images/docker_container.png)
 
