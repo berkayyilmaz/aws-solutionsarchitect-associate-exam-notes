@@ -201,6 +201,7 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 	
 **1. Spot Instances:** Spot instances allow consumption of spare AWS capacity for a given instance type and size in a specific AZ. Instances are provided for as long as your bid price is above the spot price, and you only ever pay the spot price. If your bid is exceeded, instances are terminated with a two-minute warning.
 Spot instances are perfect for non-critical workloads, burst workloads, or consistent non-critical jobs that can tolerate interruptions without impacting functionality. Sport is not suitable for long-running workloads that require stability and cannot tolerate interruptions.
+
 **2. Reserved Instances:** Reserved instances lock in a reduced rate for one or three years. Zonal reserved instances include a capacity reservation. Your commitment incurs costs even if instances aren't launced. Reserved purchases are used for long-running, understood, and consistent worloads. 
 Zonal reservations mean that you can reserve EC2 instances in a chosen Availablity Zone, most importantly, this choice locks you to one instance size.
 
@@ -231,10 +232,11 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * A microservice sarchitecture is the inverse of a monolithic architecture. Instead of having all system functions in one codebase, components are separated into microservices and operate independetly. A microservice does one thing - and does it well. Operations, updates, and scaling can be done on a per-microservice basis.
 * Microservices operate as independent applications. They allow direct communication between components and the end user. If one part of the system requires more capacity, that service can be scaled and updated as needed.
 * You can access the AWS Console via a user interface, which is designed for a human being. An API (or application programming interface) is an interface accessed(consumed) by another service or application.
-* An API endpoin hosts on or more APIs and makes them available on a network (private or public internet). APIs remain static - they are abstracted from what the code inside the service is doin. API consumers don't care how things are done - only that the interface works. That's what aloows lower-risk changes.
+* An API endpoint hosts on or more APIs and makes them available on a network (private or public internet). APIs remain static - they are abstracted from what the code inside the service is doin. API consumers don't care how things are done - only that the interface works. That's what aloows lower-risk changes.
 * Serverless architecture consists of two main principles, including BaaS(or Backend as a Service), which means using third-party services where possible rather than running your own. Examples include Auth0 or Cognito for authentication and Firebase or DynamoDB for data storage.
 * Serverless also means using an event-driven architecture where possible, using FaaS(or Function as a Service) products to provide application logic. These functions are only active(invoked) when they are needed (when an event is received).
 * Server maintanance is not needed, on-demand logic, can be scaled to meet demand are benefits of FaaS.
+
 **1. Lambda Function**
 * Lambda is an essential service in AWS. It's a Function-as-a-Service product that is a key part of event-driven and serverless architectures.
 * Functions can consume inter API endpoints or other services, functions can be allowed access to a VPC - allowing private resource access, Access to AWS services is provided by the functions's execution role. This role is assumed by Lambda, and temporary security credentials are available to the function via STS.
@@ -242,6 +244,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * You can provide environment variable within Lambda.
 * There is time out which is 15 minutes. You can not exceed 15 minutes running time in Lambda.
 * If you chose to author a Lambda function from scratch Code and any additional libraries, function name, Runtime, Permissions are necessary.
+
 **2. API Gateway**
 * API Gateway is a managed API endpoint service. It can be used to create, publish, monitor and secure APIs "a a service". API Gateway can use other. AWS services for compute (FaaS/IaaS) as well as to store and recall data.
 
@@ -267,4 +270,23 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * A container is a package that contains an application, libraries, and file system required to run it. Containers run on a container engine that generally runs within single OS, such as Linux. Containers provide the isolation benefits of virtualization but are more lightweight, allowing faster starts and more dense packing within a host.
 
 ![Docker Container](images/docker_container.png)
+
+**1. Elastic Continer Service (ECS)**
+* EC2 is a managed container engine. It allows Docker containers to be deployed and managed within AWS environments. ECS can be use infrastructure clusters based on EC2 or Fargate where AWS manages the backing infrastructure.
+* There are 2 types of ECS Mode which are EC2 Mode and Fargate Mode.
+* In EC2 Mode there are server types as Windows or Linux. In the Fargate Mode there is not server, and allows AWS to fully manage the backing infrastructure.
+* Docker Hub is and online container repository, also knows as a registry, meant for sharing and storing container images.
+* Task Role provides ECS containers permission to access other AWS services.
+* A task is a single running copy of any containers defined by a task definition
+* A service allows task definitions to be scaled with the creation of more tasks.
+
+**Hints**
+
+**a. Cluster**: A logical collection of ECS resources - either ECS EC2 instances or a logical representation of managed Fargate infrastructure
+**b. Task Definition:** Defines your application. Similar to a Dockerfile but for running containers in ECS. Can contain multiple containers.
+**c. Container Definition:** Inside a task definition, a container definition defines the invidual containers a task uses. It controls the CPU and memory each container has, in addition to port mappings for the container.
+**d. Task:** A single running copy of any containers defined by a task definition. One working copy of an application(e.g. DB and web containers).
+**e. Service:** Allows task definitions to be scaled by adding additional tasks. Defines minimum and maximum values.
+**f. Registry:** Storage for container images (e.g. ECS COntainer Registry or Dockerhub). Used to download image to create containers.
+
 
