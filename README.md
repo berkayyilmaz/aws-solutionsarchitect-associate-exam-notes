@@ -238,6 +238,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * Server maintanance is not needed, on-demand logic, can be scaled to meet demand are benefits of FaaS.
 
 **1. Lambda Function**
+
 * Lambda is an essential service in AWS. It's a Function-as-a-Service product that is a key part of event-driven and serverless architectures.
 * Functions can consume inter API endpoints or other services, functions can be allowed access to a VPC - allowing private resource access, Access to AWS services is provided by the functions's execution role. This role is assumed by Lambda, and temporary security credentials are available to the function via STS.
 * In the Lambda if you want to import external libraries you need to upload file as zip file or from S3 bucket.
@@ -246,6 +247,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * If you chose to author a Lambda function from scratch Code and any additional libraries, function name, Runtime, Permissions are necessary.
 
 **2. API Gateway**
+
 * API Gateway is a managed API endpoint service. It can be used to create, publish, monitor and secure APIs "a a service". API Gateway can use other. AWS services for compute (FaaS/IaaS) as well as to store and recall data.
 
 ![API Gateway](images/api_gateway.png)
@@ -272,6 +274,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 ![Docker Container](images/docker_container.png)
 
 **1. Elastic Continer Service (ECS)**
+
 * EC2 is a managed container engine. It allows Docker containers to be deployed and managed within AWS environments. ECS can be use infrastructure clusters based on EC2 or Fargate where AWS manages the backing infrastructure.
 * There are 2 types of ECS Mode which are EC2 Mode and Fargate Mode.
 * In EC2 Mode there are server types as Windows or Linux. In the Fargate Mode there is not server, and allows AWS to fully manage the backing infrastructure.
@@ -283,10 +286,70 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 **Hints**
 
 **a. Cluster**: A logical collection of ECS resources - either ECS EC2 instances or a logical representation of managed Fargate infrastructure
+
 **b. Task Definition:** Defines your application. Similar to a Dockerfile but for running containers in ECS. Can contain multiple containers.
 **c. Container Definition:** Inside a task definition, a container definition defines the invidual containers a task uses. It controls the CPU and memory each container has, in addition to port mappings for the container.
+
 **d. Task:** A single running copy of any containers defined by a task definition. One working copy of an application(e.g. DB and web containers).
+
 **e. Service:** Allows task definitions to be scaled by adding additional tasks. Defines minimum and maximum values.
+
 **f. Registry:** Storage for container images (e.g. ECS COntainer Registry or Dockerhub). Used to download image to create containers.
+
+# 5- NETWORKING
+
+**a.Virtual Private Cloud (VPC)**
+
+* A private network within AWS. It's your private data center inside the AWS platform.
+* Can be configured to be public/private or mixture.
+* Regional (can't span regions), highly available, and can be connected to your data center and corporate networks
+* Isolated from other VPCs by default
+* VPC and subnet: max /16 (65,536 IPs) and minimum /28 (16 IPs)
+* VPC subnets can't span AZs (1:1 mapping)
+* Certain IPs are reserved in subnets
+
+**b.Region Default VPC**
+
+* Required for some services, used as a default for most
+* Pre-configured with all required networking/security
+* Configured using a /16 CIDR block /172.31.0.0/16)
+* A /20 public subnet in each AZ, allocating a public IP by default
+* Attached IGW with a "main" route table sending all IPv4 traffic to the IGW using 0.0.0.0/0 route
+* A default DHCP option set attached
+* SG: Default - all from itself, all outbound
+* NACL: Default - allow all inbound and outbound
+
+**c. Custom VPC**
+
+* Can be designed and cınfigured in any valid way
+* You need to allocate IP ranges, create subnets, and provision gateways and networking, as well as design and implement security.
+* When you need multiple tiers or a more complex set of networking
+* Best practice is to not use default for most production things
+* A subnet can be shared only across accounts that are in the same AWS Organization.
+
+![VPC Chart](images/vpc_chart.png) 
+
+**d. VPC Routing**
+
+* IGW translates private IPs to public IPs, normally in the VPC resources they do not have private IPs.
+* Every VPC has a virtual routing device called the VPC router.
+* It has an interface in any VPC subnet know as the "subnet+1" address - for 10.0.1.0/24, this would be 10.0.1.1/32.
+* The router is highly available, scalable, and controls data entering and leaving the VPC and its subnets.
+* Each VPC has a "main" route table, which is allocated to all subnets in the VPC by default. A subnet must have one route table.
+* Additional "custom" route tables can be created and associated with subnets - but only one route table(RT) PER SUBNET.
+* A route table controls what the VPC router does with traffic leaving a subnet.
+* An IG is created and attached to a VPC(1:1) It can route traffic for public IPs to and from the internet.
+
+**e. Routes**
+
+* A RT is a collection of routes that are used when traffic from a subnet arrives at the VPC router.
+* Every route table has local route, which matches the CIDR of the VPC and lets traffic be routed between subnets.
+* A route contains a destination and a target. Traffic is forwared to the target if its destination matches the route destionation.
+* If multiple routes apply, the most specific is chosen. A /32 is chosen before a /24, before a /16.
+* Default routes(0.0.0.0/0 v4 and ::/0 v6) can be added that match any traffic not already matched.
+* Targets can be IPs or AWS networking gateway/objects
+* A subnet is a public subnet if it is (1) configured to allocate public IPs, (2) if the VPC has an associated IGW, and (3) if that subnet has a default route to that IGW.
+
+![VPC Routing](images/vpc_routing.png) 
 
 
