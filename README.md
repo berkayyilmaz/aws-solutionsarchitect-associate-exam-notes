@@ -237,7 +237,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * Serverless also means using an event-driven architecture where possible, using FaaS(or Function as a Service) products to provide application logic. These functions are only active(invoked) when they are needed (when an event is received).
 * Server maintanance is not needed, on-demand logic, can be scaled to meet demand are benefits of FaaS.
 
-**1. Lambda Function**
+## Lambda Function
 
 * Lambda is an essential service in AWS. It's a Function-as-a-Service product that is a key part of event-driven and serverless architectures.
 * Functions can consume inter API endpoints or other services, functions can be allowed access to a VPC - allowing private resource access, Access to AWS services is provided by the functions's execution role. This role is assumed by Lambda, and temporary security credentials are available to the function via STS.
@@ -246,7 +246,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * There is time out which is 15 minutes. You can not exceed 15 minutes running time in Lambda.
 * If you chose to author a Lambda function from scratch Code and any additional libraries, function name, Runtime, Permissions are necessary.
 
-**2. API Gateway**
+## API Gateway
 
 * API Gateway is a managed API endpoint service. It can be used to create, publish, monitor and secure APIs "a a service". API Gateway can use other. AWS services for compute (FaaS/IaaS) as well as to store and recall data.
 
@@ -259,11 +259,12 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 
 ![API Gateway Architecture](images/api_gateway_architecture.png)
 
-**3. Step Functions**
+## Step Functions
+
 * Step Functions is a **serverless visual workflow service** that provides **state machines**. A state machine can orchestrate other AWS services with simple logic, branching and parallel execution, and it maintains a **state**. Workflow steps are knows as **states**, and they can perform work via **tasks**. Step Functions allows for **long-running serverless workflows**. A state machine can be defined using Amazon Sates Language(ASL).
 * State machines can control AWS services.
 * State machines provide simple logic, branching, merges, and parallel execution.
-* SM can informa a state machine of its next state to be executed.
+* SM can inform a state machine of its next state to be executed.
 * SM machines maintain a state
 * SM needs IAM roles.
 * Without Step Functions, Lambda functions could only run for 15 minutes. Lambda functions are stateless. State machines maintain state and allow longer-runnning processes. Step Functions "replaces" SWF with a serverless version.
@@ -273,7 +274,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 
 ![Docker Container](images/docker_container.png)
 
-**1. Elastic Continer Service (ECS)**
+## Elastic Continer Service (ECS)
 
 * EC2 is a managed container engine. It allows Docker containers to be deployed and managed within AWS environments. ECS can be use infrastructure clusters based on EC2 or Fargate where AWS manages the backing infrastructure.
 * There are 2 types of ECS Mode which are EC2 Mode and Fargate Mode.
@@ -288,17 +289,18 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 **a. Cluster**: A logical collection of ECS resources - either ECS EC2 instances or a logical representation of managed Fargate infrastructure
 
 **b. Task Definition:** Defines your application. Similar to a Dockerfile but for running containers in ECS. Can contain multiple containers.
+
 **c. Container Definition:** Inside a task definition, a container definition defines the invidual containers a task uses. It controls the CPU and memory each container has, in addition to port mappings for the container.
 
 **d. Task:** A single running copy of any containers defined by a task definition. One working copy of an application(e.g. DB and web containers).
 
 **e. Service:** Allows task definitions to be scaled by adding additional tasks. Defines minimum and maximum values.
 
-**f. Registry:** Storage for container images (e.g. ECS COntainer Registry or Dockerhub). Used to download image to create containers.
+**f. Registry:** Storage for container images (e.g. ECS Container Registry or Dockerhub). Used to download image to create containers.
 
 # 5- NETWORKING
 
-**a.Virtual Private Cloud (VPC)**
+## Virtual Private Cloud (VPC)
 
 * A private network within AWS. It's your private data center inside the AWS platform.
 * Can be configured to be public/private or mixture.
@@ -308,7 +310,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * VPC subnets can't span AZs (1:1 mapping)
 * Certain IPs are reserved in subnets
 
-**b.Region Default VPC**
+**Region Default VPC**
 
 * Required for some services, used as a default for most
 * Pre-configured with all required networking/security
@@ -319,7 +321,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * SG: Default - all from itself, all outbound
 * NACL: Default - allow all inbound and outbound
 
-**c. Custom VPC**
+**Custom VPC**
 
 * Can be designed and cınfigured in any valid way
 * You need to allocate IP ranges, create subnets, and provision gateways and networking, as well as design and implement security.
@@ -329,18 +331,18 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 
 ![VPC Chart](images/vpc_chart.png) 
 
-**d. VPC Routing**
+## VPC Routing
 
-* IGW translates private IPs to public IPs, normally in the VPC resources they do not have private IPs.
+* IGW translates private IPs to public IPs, normally in the VPC resources they do not have public IPs.
 * Every VPC has a virtual routing device called the VPC router.
 * It has an interface in any VPC subnet know as the "subnet+1" address - for 10.0.1.0/24, this would be 10.0.1.1/32.
 * The router is highly available, scalable, and controls data entering and leaving the VPC and its subnets.
 * Each VPC has a "main" route table, which is allocated to all subnets in the VPC by default. A subnet must have one route table.
-* Additional "custom" route tables can be created and associated with subnets - but only one route table(RT) PER SUBNET.
+* Additional "custom" route tables can be created and associated with subnets - but only one route table(RT) per subnet.
 * A route table controls what the VPC router does with traffic leaving a subnet.
-* An IG is created and attached to a VPC(1:1) It can route traffic for public IPs to and from the internet.
+* An IGW is created and attached to a VPC(1:1) It can route traffic for public IPs to and from the internet.
 
-**e. Routes**
+**Routes**
 
 * A RT is a collection of routes that are used when traffic from a subnet arrives at the VPC router.
 * Every route table has local route, which matches the CIDR of the VPC and lets traffic be routed between subnets.
@@ -352,4 +354,26 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 
 ![VPC Routing](images/vpc_routing.png) 
 
+## Bastion Hosts (or Jumpboxes)
+
+* A host that sits at the perimeter of a VPC
+* It functions as an entry point to the VPC for trusted admins.
+* Allows for updates or configuration tweaks remotely while allowing the VPC to stay private and protected
+* Generally connected to via SSH (Linux) or RDP (Windows)
+* Bastion hosts must be kepy updated and security hardened and audited regularly
+* Multifactor authentication, ID federation and/or IP blocks
+* Bastion host resides in public subnet.
+
+## NAT Gateway
+
+* NAT (network address translation) is a process where the source or destination attributes of an IP packet are changed. 
+* Static NAT is the process of 1:1 translation where an internet gateway converts a private address to a public IP address. 
+* Dynamic NAT is a variation that allows many private IP addresses to get outgoing internet access using a smaller number of public IPs (generally one). Dynamic NAT is provided within AWS using a NAT gateway that allows private subnets in an AWS VPC to access the internet.
+* When private instance connect and request something from the internet it can get response because NAT Gateway is session level product. However, from the internet can not initiate connection to private instance.
+* Elastic IP is needed for NAT Gateway.
+* It can scale itself depends on load on it.
+* NAT Gateway resides in one public subnet and AZ. When AZ fails NAT Gateway also fails.
+* NAT Gateway and NAT Instance Comparison: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-comparison.html
+
+![NAT Gateway](images/NAT_Gateway.png) 
 
