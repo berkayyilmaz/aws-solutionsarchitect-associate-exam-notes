@@ -142,6 +142,7 @@ ec2-203-0-113-25.compute-1.amazonaws.com
 * SG has by default implicit DENY rules.
 * You are not allowed to add explicitly DENY rule. For example, you want to provide EC2 instance access for ten people but one of them has infected computer which you do not want to him access. That’s why you need to set smaller IP CIDR block.
 * It does not required to refer IPs in every time. You can set other security groups as well as inbound rules.
+* SG can be shared across two VPCs in the same region, multiple EC2s instances in a VPC, AWS accounts in the same region, not in regions
 * SGs are stateful which means there is a data transfer between client and server. Just imagine, when you send a request to website via browser, browser send a request to server and get datas back in order to show them in browser because of outbound traffic rules are opened for 0.0.0.0/0 which means all. As a second example, you connected server with SSH and want to update “yum” package. Please have a look below image for better understanding.
 
 ![Security Groups](images/security_groups.png)
@@ -307,6 +308,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * Regional (can't span regions), highly available, and can be connected to your data center and corporate networks
 * Isolated from other VPCs by default
 * VPC and subnet: max /16 (65,536 IPs) and minimum /28 (16 IPs)
+* Subnet CIDRs cannot overlap with other subnets inside the same VPC
 * VPC subnets can't span AZs (1:1 mapping)
 * Certain IPs are reserved in subnets
 
@@ -318,8 +320,11 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * A /20 public subnet in each AZ, allocating a public IP by default
 * Attached IGW with a "main" route table sending all IPv4 traffic to the IGW using 0.0.0.0/0 route
 * A default DHCP option set attached
+* DHCP, allows any instances in a VPC to point to the specified domain and DNS servers to resolve their domain names
+* A VPC can only have one DHCP option set, 
 * SG: Default - all from itself, all outbound
 * NACL: Default - allow all inbound and outbound
+* SG, DHCP, Public Subnet, An attached IGW, NACL are entitites which are included when a default VPC is created. Firewall is not automatically created when a default VPC is launched.
 
 **Custom VPC**
 
@@ -328,6 +333,7 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 * When you need multiple tiers or a more complex set of networking
 * Best practice is to not use default for most production things
 * A subnet can be shared only across accounts that are in the same AWS Organization.
+* Other allowed AWS accounts can launch resources in that a shared subnet.
 
 ![VPC Chart](images/vpc_chart.png) 
 
@@ -367,13 +373,112 @@ Zonal reservations mean that you can reserve EC2 instances in a chosen Availabli
 ## NAT Gateway
 
 * NAT (network address translation) is a process where the source or destination attributes of an IP packet are changed. 
-* Static NAT is the process of 1:1 translation where an internet gateway converts a private address to a public IP address. 
-* Dynamic NAT is a variation that allows many private IP addresses to get outgoing internet access using a smaller number of public IPs (generally one). Dynamic NAT is provided within AWS using a NAT gateway that allows private subnets in an AWS VPC to access the internet.
+* **Static NAT** is the process of 1:1 translation where an internet gateway converts a private address to a public IP address. 
+* **Dynamic NAT** is a variation that allows many private IP addresses to get outgoing internet access using a smaller number of public IPs (generally one). Dynamic NAT is provided within AWS using a NAT gateway that allows private subnets in an AWS VPC to access the internet. DNAT gateways are scalable.
+* SNAT Gateway translates private to public IPs at a 1:1 ratio, while DNAT gateways translate a range of private IPs to public.
 * When private instance connect and request something from the internet it can get response because NAT Gateway is session level product. However, from the internet can not initiate connection to private instance.
+* To achieve high availability, you need to put as many NAT Gateways as you have Availability Zones. NAT Gateways do not have to match the numver of private subnets.
+* Splitting the resources up and having each subnet go to its own NAT gateway will increase the avaiable bandwidth for each NAT gateway.
 * Elastic IP is needed for NAT Gateway.
 * It can scale itself depends on load on it.
 * NAT Gateway resides in one public subnet and AZ. When AZ fails NAT Gateway also fails.
 * NAT Gateway and NAT Instance Comparison: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-comparison.html
+* NAT Gateways do not have management overhead like NAT instances do. NAT instances can act in place of a bastion host.
+* NAT gateways are not supported for IPv6 traffic. Egress-only internet gateways should be used instead.
 
 ![NAT Gateway](images/NAT_Gateway.png) 
 
+## Network Access Control Lists (NACLs)
+
+* NACLs operate at layer 4 of the OSI model (TCP/UDP and below)
+* A subnet has to be associated with a NACL - either the VPC default or a custom NACL.
+* NACLs only impact traffic crossing the boundary of a subnet.
+* NACLs are collections of rules that can explicity allow or deny traffic based on its protocol, port range, and source/destination.
+* Rules are processed in number order, lowest first. When a match is found that action is taken and processing stops.
+* NACLs have two sets of rules: inbound and outbound
+* NACLs can be associated with one or more subnets
+* Custom NACLs contain default rules
+* Rule "star" which implicitly denies all traffic
+* Rule 100 which allows all traffic (default NACL)
+* SG are assigned to a specific resource, while NACLs are assigned to a subnet.
+* SG are stateful, while NACLs are stateless.
+* SG do not allow for explicit denies, while NACLs do.
+
+**Ephemeral Ports**
+
+* When a client initiates communications with a server, its is to a well-known port number (e.g tcp/443) on that server.
+* The response is from that well-know port to an ephemeral port on the client. The client decides the port.
+* NACLs are **stateless**, they have to consider both initiating and response traffic - state is session-layer concept.
+
+## VPC Peering
+
+* Allows direct communication between VPCs.
+* Services can communicate using private IPs from VPC to VPC.
+* VPC peers can span AWS accounts and even regions (with some limitations)
+* Data is encrypted and transits via the AWS global backbone.
+* VPC peers are used to link two VPCs at layer 3: company mergers, shared services, company and vendor, auditing.
+* In order to setup Peering connection between two VPCs you have to add route and configure security allowance which can be SG or NACL.
+* By editing DNS settings within the Peering Connections menu, you'll be able to resolve public IPs to private IPs.
+
+**Important Limits and Considerations**
+
+* VPC CIDR blocks cannot overlap.
+* VPC peers connect two VPCs - routing is not transitive.
+* Routes are required at both sides (remote CIDR -> peer connection)
+* NACLs and SGs can be used to control access.
+* SGs can be referenced but not cross-region.
+* IPv6 support is not available cross-region.
+* DNS resolution to private IPs can be enabled, but it's a setting needed at both sides.
+
+![VPC Peering](images/vpc_peering.png)
+
+* VPC transitive is not allowed. You have to define one to one peering connection.
+
+![VPC Peering Transitive](images/vpc_peering_transitive.png)
+
+## VPC Endpoint
+
+* VPC Endpoints are gateway objects created within a VPC. They can be used to connect to AWS public services without the need for the VPC to have an attached gateway and be public.
+
+**VPC Endpoint Types**
+
+* Gateway endpoint: Can be used for DynamoDB and S3
+* Gateway endpoints do not use external DNS. Instead, it uses its own AWS network to resolve AWS public services.
+* Interface endpoints: Can be used for everything else (e.g, SNS, SQS)
+
+**When to Use a VPC Endpoint**
+
+* If the entire VPC is pirvate with no IGW
+* If a specific instance has no public IP/NATHW and needs to access public services
+* To access resources restricted to specific VPCs or endpoints (private S3 bucket)
+
+**Limitations and Considerations**
+
+* Gateway endpoints are used via route table entries - they are gateway devices. Prefix lists for a service are used in the destination field with the gateway as the target.
+* Gateway endpoints can be restricted via policies.
+* Gateway endpoints are HA across AZs in a region.
+* Interface endpoints are interfaces in a specific subnet. For HA, you need to add multiple interfaces - one per AZ.
+* Interface endpoints are controlled via SGs on that interface. NACLs also impact traffic.
+* Interface endpoints add or replace the DNS for the service - no route table updates are required.
+* Code changes to use the endpoint DNS, or enable private DNS to override the default service DNS.
+* Similarities between gateway endpoints and interface endpoints are allow you to connect to a public AWS Service without needing a public gateway or public IP, both are VPC endpoints, both can be used to achieve high availability, However, interface endpoints are needed per AZ to achieve high availability. But The gateway interface uses a prefix list; an interface endpoint does not.
+
+https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html
+
+![VPC Endpoint](images/vpc_endpoint.png)
+
+**IPv6 VPC Setup**
+
+* It is currently optional - it is disabled by default
+* To use it, the first step is to request an IPv6 allocation. Each VPC is allocated a /56 CIDR from the AWS Pool - this cannot be adjusted.
+* With the VPC IPv6 range allocated, subnets can be allocated a /64 CIDR from within the /56 range.
+* Resources launched into a subnet with an IPv6 range can be allocated a IPv6 address via DHCP6.
+* IPv6 is attached to the operating system.
+
+**Limitations and Considerations**
+
+* DNS names are not allocated to IPv6 addresses.
+* IPv6 addresses are all publicly routable - there is no concept of private vs. public with IPv6 (unlike IPv5 addresses)
+* With IPv6, the OS is configured with this public address via DHCP6.
+* Elastic IPs aren't relevant with IPv6.
+* Not currently supported for VPNs, customer gateways, and VPC endpoints.
