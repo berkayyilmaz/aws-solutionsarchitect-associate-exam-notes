@@ -482,3 +482,68 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html
 * With IPv6, the OS is configured with this public address via DHCP6.
 * Elastic IPs aren't relevant with IPv6.
 * Not currently supported for VPNs, customer gateways, and VPC endpoints.
+
+# 6- DNS
+
+* A zone or hosted zone is a container for DNS records relating to a particular domain (e.g, google.com). Route 53 supports public hosted zones, which influence the domain that is visible from the internet and VPCs. Private hosted zones are similar but accessible only from the VPCs they are associated with.
+
+**Public Zones**
+
+* A public hosted zone is created when you register a domain with Route 53, when you transfer a domain into Route 53, or if you create one manually.
+* A hosted zone has the same name as the domain it relates to - e.g, google.com will have a hosted zone called googl.com
+* A public zone is accessible either from internet-based DNS clients(e.g your laptop) or from within any AWS VPCs.
+* A hosted zone will have "name servers" - these are the IP addresses you can give to a domain operator, so Route 53 becomes "authoritative" for a domain.
+
+**Private Zones**
+
+* Private zones are created manually and associated with one or more VPs - They are only accessible from those VPCs.
+* Private zones need **enableDnsHostname** and **enableDnsSuppor** enabled on a VPC.
+* Not all Route 53 features supported - limits on health checks.
+* Split-view DNS is supported, using the same zone name for public and private zones - providing VPC resources with different records (e.g testing, internal versions of websites)
+* With split view, private is preferred - if no matches, public is used.
+
+**Record Set Types**
+
+* DNS supports different types of records, each providing different functionality at an associate level, the important ones are:
+
+**A Record (and AAAA):** For a given host (www), an A record provides and IPv4 address(e.g, 10.0.0.1) and an AAAA provides an IPv6 address.
+
+**CNAME Record:** Allows aliases to be created (not the same as an alias record). A machine such as *allthethings.google.com* might have CNAMES for www, ftp, and images. Each of these CNAMEs points at an existing record in the domain. www -> *allthethings.google.com* CNAMEs cannot be used at the APEX of a domain (e.g google.com)
+
+**MX Record:** MX records provide the mail servers for a given domain. Each MX record has a priority. Remote mail servers use this to locate the server to use when sending to someuser@gsuit.com
+
+**NS Record:** Used to set the authoritative servers for a subdomain. .com would have NS servers for *google.com*
+
+**TXT Record:** Used for descriptive text in a domain * often used to verify domain ownership (Gmail/Office365)
+
+**Alias Records:** An extension of CNAME - can be used like an A record with the functionality of a CNAME and non of the limitations. Can refer to AWS logical services (Load balancers, S3 buckets), and AWS doesn't charge for queries of alias records against AWS resources.
+
+**Health Checks**
+
+* Health checks can be created within Route 53 and are used to influence Route 53 routing decisions. There are three type of health checks:
+
+* Health checks that monitor that health of an endpoint - e.g IP address or hostname
+
+* Health checks that monitor the health of another health check (these are referred to as calculated health checks)
+
+* Health checks that monitor Cloudwatch alarms - you might want to consider something unhealthy if your DynamoDB table is experiening performance issues.
+
+**Route 53 Health Checkers**
+
+* Global health check system that checks an endpoint in an agreed way with an agreed frequency
+
+* > 18% of checks report healthy = healthy, < 18% healthy = unhealthy
+
+**Types of Health Check**
+
+* HTTP and HTTPS: tcp/80 or tcp/443 connection check in less than four seconds. Reporting 2XX or 3XX code within two seconds
+
+* TCP health check: tcp connection within 10 seconds.
+
+* HTTP/S with string match: All the checks as with HTTP/HTTPS but the body is checked for a string match
+
+**Route 53 and Health Checks**
+
+* Records can be linked to health checks. If the check is unhealthy, the record isn't used.
+
+* Can be used to do failover and other routing architectures (more in the next topic)
