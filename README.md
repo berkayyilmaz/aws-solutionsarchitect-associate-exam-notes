@@ -502,7 +502,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html
 * Split-view DNS is supported, using the same zone name for public and private zones - providing VPC resources with different records (e.g testing, internal versions of websites)
 * With split view, private is preferred - if no matches, public is used.
 
-**Record Set Types**
+## Record Set Types
 
 * DNS supports different types of records, each providing different functionality at an associate level, the important ones are:
 
@@ -518,32 +518,63 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html
 
 **Alias Records:** An extension of CNAME - can be used like an A record with the functionality of a CNAME and non of the limitations. Can refer to AWS logical services (Load balancers, S3 buckets), and AWS doesn't charge for queries of alias records against AWS resources.
 
-**Health Checks**
+## Health Checks
 
 * Health checks can be created within Route 53 and are used to influence Route 53 routing decisions. There are three type of health checks:
-
 * Health checks that monitor that health of an endpoint - e.g IP address or hostname
-
 * Health checks that monitor the health of another health check (these are referred to as calculated health checks)
-
 * Health checks that monitor Cloudwatch alarms - you might want to consider something unhealthy if your DynamoDB table is experiening performance issues.
 
 **Route 53 Health Checkers**
 
 * Global health check system that checks an endpoint in an agreed way with an agreed frequency
-
-* > 18% of checks report healthy = healthy, < 18% healthy = unhealthy
+* 18% of checks report healthy = healthy, < 18% healthy = unhealthy
 
 **Types of Health Check**
 
 * HTTP and HTTPS: tcp/80 or tcp/443 connection check in less than four seconds. Reporting 2XX or 3XX code within two seconds
-
 * TCP health check: tcp connection within 10 seconds.
-
 * HTTP/S with string match: All the checks as with HTTP/HTTPS but the body is checked for a string match
 
 **Route 53 and Health Checks**
 
 * Records can be linked to health checks. If the check is unhealthy, the record isn't used.
-
 * Can be used to do failover and other routing architectures (more in the next topic)
+
+## Routing Types
+
+* The TTL is the amount of time that DNS will cache the record.
+
+**Simple Routing**
+
+* A simple routing policy is a single record within a hosted zone that contains one or more values. When queried, a simple routing policy record returns all the values in a randomized order.
+* The DNS client (the laptop) receives a randomized list of IPs as a result. The client can select the appropriate one and initiate an HTTP session with a resource.
+* Pros: Simple, the default, even spread of requests
+* No performance control, no granular health checks, for alias type - only a single AWS resource
+* Use a multivalue answer routing policy to help distribute DNS responses across multiple resources. For example, use multivalue answer routing when you want to associate your routing records with a Route 53 health check. For example, use multivalue answer routing when you need to return multiple values for a DNS query and route traffic to multiple IP addresses.
+
+**Failover Routing**
+
+* Failover routing allows you to create two records with the same name. One is designated as the primary and another as secondary. Queries will resolve to the primary - unless it is unhealthy, in which case Route 53 will respond with the secondary.
+* Failover can be combined with other types to allow multiple primary and secondary records. Generally, failover is used to provide emergency resources during failures.
+* It is possible to create two failover records with same name. One is for primary another is for secondary.
+
+**Weighted Routing**
+
+* Weighted routing can be used to control the amount of traffic that reaches specific resources. It can be useful when testing new software or when resources are being added or removed from a configuration that doesn't use a load balancer.
+* Records are returned based on a ratio of their weight to the total weight, assuming records are healthy.
+* It's possible to create multiple same record set with weighted routing.
+* Weighted routing is not same as Load Balancer. When a new feature needs to be tested, weighted routing can be used.
+
+**Latency-Based Routing**
+
+* With a latency-based routing, Route 53 consults a latency database each time a request occurs to a given latency-based host in DNS from a resolver server. Record sets with the same name are considered part of the same latency-based set. Each is allocated to a region. The record set returned is the on with the lowest latency to the resolver server.
+* Latency-based routing is not same with Geolocation routing
+* Consults a latency database each time a request occurs
+Must specify a region not an availability zone
+
+**Geolocation Routing**
+
+* Geolocation routing lets you choose the resources that serve your traffic based on the geograhic region from which queries originate. A record set is configured for a continent or country. That record set is used for queries in that same region, with more specific matches taking priority.
+* A record set can be set as the default that gets returned if the IP matching process fails or if no record set is configured for the originating query region.
+* A no-result is returned if no match exists between a record set and the query location. Geoproximity allows a bias to expand a geograhic area.
