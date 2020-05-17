@@ -545,7 +545,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html
 
 * The TTL is the amount of time that DNS will cache the record.
 
-**Simple Routing**
+## Simple Routing
 
 * A simple routing policy is a single record within a hosted zone that contains one or more values. When queried, a simple routing policy record returns all the values in a randomized order.
 * The DNS client (the laptop) receives a randomized list of IPs as a result. The client can select the appropriate one and initiate an HTTP session with a resource.
@@ -553,28 +553,155 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html
 * No performance control, no granular health checks, for alias type - only a single AWS resource
 * Use a multivalue answer routing policy to help distribute DNS responses across multiple resources. For example, use multivalue answer routing when you want to associate your routing records with a Route 53 health check. For example, use multivalue answer routing when you need to return multiple values for a DNS query and route traffic to multiple IP addresses.
 
-**Failover Routing**
+## Failover Routing
 
 * Failover routing allows you to create two records with the same name. One is designated as the primary and another as secondary. Queries will resolve to the primary - unless it is unhealthy, in which case Route 53 will respond with the secondary.
 * Failover can be combined with other types to allow multiple primary and secondary records. Generally, failover is used to provide emergency resources during failures.
 * It is possible to create two failover records with same name. One is for primary another is for secondary.
 
-**Weighted Routing**
+## Weighted Routing
 
 * Weighted routing can be used to control the amount of traffic that reaches specific resources. It can be useful when testing new software or when resources are being added or removed from a configuration that doesn't use a load balancer.
 * Records are returned based on a ratio of their weight to the total weight, assuming records are healthy.
 * It's possible to create multiple same record set with weighted routing.
 * Weighted routing is not same as Load Balancer. When a new feature needs to be tested, weighted routing can be used.
 
-**Latency-Based Routing**
+## Latency-Based Routing
 
 * With a latency-based routing, Route 53 consults a latency database each time a request occurs to a given latency-based host in DNS from a resolver server. Record sets with the same name are considered part of the same latency-based set. Each is allocated to a region. The record set returned is the on with the lowest latency to the resolver server.
 * Latency-based routing is not same with Geolocation routing
 * Consults a latency database each time a request occurs
-Must specify a region not an availability zone
+* Must specify a region not an availability zone
 
-**Geolocation Routing**
+## Geolocation Routing
 
 * Geolocation routing lets you choose the resources that serve your traffic based on the geograhic region from which queries originate. A record set is configured for a continent or country. That record set is used for queries in that same region, with more specific matches taking priority.
 * A record set can be set as the default that gets returned if the IP matching process fails or if no record set is configured for the originating query region.
 * A no-result is returned if no match exists between a record set and the query location. Geoproximity allows a bias to expand a geograhic area.
+
+# 7- S3
+
+* Bucket authorization within S3 is controlled using identiy policies on AWS identies, as well as **bucket policies** in the form of resource policies on the bucket and bucket or object **ACLs**
+* Identity policies attached to IAM users, roles or groups can include S3 elements. This only works for indetities in the same account as the bucket.
+* Resource (Bucket) policies apply to a resource. They can be used to authorize access to a bucket or objects inside a bucket to large numbers of identites. Bucket policies can also apply to anonymous accesses(public access).
+* **Block public access** is a setting applied on top of any existing settings as a protection.
+* It can disallow **all** public access granted to a bucket and objects using ACLs or bucket policies.
+* It can also block new public access grants using bucket policies or ACLs
+
+**IMPORTANT:** Block public access overrules any other public grant.
+
+* Final authorization is a combination of all applicable policies. Priority order is (1)Explicit Deny, (2)Explicit Allow, (3)Implicit Deny.
+* Uploads to S3 are generally done using the S3 console, the CLI or directly using the APIs. Uploads either use a single operation (known as a single PUT upload) or multipart upload.
+
+## Single PUT Upload
+
+* Object is uploaded in a single stream of data.
+
+![Single PUT Upload](images/single_put_upload.png)
+
+* Limit of 5 GB can cause performance issues, and if the upload fails the **whole upload** fails.
+
+## Multipart Upload
+
+* An object is broken up into parts (up to 10.000), each part is 5BM to 5 GB, and the last part can be less (the remaining data)
+
+![Multi PUT Upload](images/multi_put_upload.png)
+
+* Multipart upload is **faster** (parallel uploads), and the invidual parts can fail and be retried invidually. AWS recommends multipart for anything over 100MB, but it's required for anything beyond 5 GB.
+* Multipart Upload is only available in AWS CLI console.
+
+## Encryption
+
+* Data between a client and S3 is encrypted in transit. Encryption at rest can be configured on a per-object basis.
+
+**Client-Side Encryption:** The client/application is responsible for managing both the encryption/decryption process and its keys. This method is generally only used when strict security compliance is required - it has significant admin and processing overhead.
+**Server-Side Encryption with Customer-Managed Keys (SSE-C):** S3 handles the encryption and decryption process. The customer is still responsible for key management, and keys must be supplied with each PUT or GET request.
+**Server-Side Encryption with S3-Managed Keys (SSE-S3):** Objects are encrypted using **AES-256** by S3. They keys are generated by S3 (using KMS on your behalf). Keys are stored with objects in an encrpted form. If you have permissions on the object (e.g., S3 Read or S3 Admin), you can decrypt and access it.
+**Server-Side Encryption with AWS KMS-Managed Keys (SSE-KMS):** Objects are encrypted using invidual keys generated by KMS. Encrypted keys are stored with the encrypted objects. Decryption of an object needs both S3 and KMS key permissions (role separation).
+
+**Bucket Default Encryption**
+
+* Objects are encryptred in S3, not buckets. Each PUT operation needs to specify encryption (and type) or not. A bucket default captures any PUT operations where no encryption method/directive is specified. It doesn't enforce what type can and can't be used. Bucket policies can enforce.
+
+## Static Websites and CORS
+
+* Amazon S3 buckets can be configured to host websites, content can be uploaded to the bucket and when enabled, **static web hosting** will provide a unique endpoint URL that can be accessed by any web browser. S3 buckets can host many types of content, including: HTML, CSS, JavaScript, Media (audio, movies, images)
+* S3 can be used to host front-end code for serverless applications or an offload location for static content. CloudFront can also be added to improve the speed and efficiency of content delivery for global users or to add SSL for custom domains.
+* Route 53 and alias records can also be used to add human-friendly names to buckets.
+
+**Cross-Origin Resource Sharing (CORS):** CORS is a security measure allowing a web application running in one domain to reference resources in another.
+
+## Versioning
+
+* Versioning can be enabled on an S3 bucket. Once enabled, any operations that would otherwise modify objects generate new versions of that original object. Once a bucket is version-enabled, it can never be fully switched off - only **suspended**
+* With versioning enabled, an AWS account is billed for all versions of all objects. Object deletions by default don't delete an object - instead, a delete marker is added to indicate the object is deleted (this can be undone). Older versions of an object can be accessed using the object name and a version ID. Specific versions can be deleted.
+* **MFA Delete** is a feature designed to prevent accidental deletion of objects. Once enabled, a one-time password is required to delete an object version or when changing the versionins state of a bucket.
+
+## Presigned URLs
+* Can be created by an identity in AWS, providing access to an object using the creator's access permissions. When the presigned URL is used, AWS verifies the creator's access to the object - notyours. The URL is encoded with authentication built in and has an expiry time.
+* Presigned URLs can be used to download or upload objects.
+* Any identity can create a presigned URL - even if that identity doesn't have access to the object.
+* Example presigned URL scenarios:
+1. Stock images website - media stored privately on S3, presigned URL generated when an image is purchased.
+2. Client access to upload an image for process to an S3 bucket.
+* When using presigned URLs, you may get an error. Some common situations include:
+1. The presigned URL has expired - seven day maximum
+2. The permissions of the creator of the URL have changed
+3. The URL was created using a role (36 hours max) and the role's temporary credentials have expired (aim to never create presigned URLs using roles)
+
+## S3 Storage Tiers/Classes
+* All objects within an S3 bucket use a storage class also known as a **storage tier**. Storage classes influence the cost, durability, availability, and "first byte latency" for objects in S3. The class used for an object can be changed manually or using lifecycle policies.
+
+**Standard**
+* Default, all-purposed stırage or when usage is unknows
+* 99.999999999%(11 nines) durability and four nines availability
+* Replicated in + AZs - no minimum object size or retrieval fee
+
+**Standard Infrequent Access (Standard-IA)**
+* Objects where real-time access is required but infrequent
+* 99.9% availability, 3+ AZ replication, cheaper than Standard
+* 30-day and 128 KB minimum charges and object retrieval fee
+
+**One Zone-IA**
+* Non-critical and/or reproducible objects
+* 99.5% availability, only 1 AZ, 30-day and 128 KB minimum charges
+* Cheaper than Standard and Standard-IA
+
+**Glacier**
+* Long-term archival storage (warm or cold backups)
+* Retrievals could take minites or hours (faster = higher cost)
+* 3+ AZ replication, 90-day and 40KB minimum charge and retrieval
+
+**Glacier Deep Archive**
+* Long-term archival(cold backups) - 180-day and 40KB minimums
+* Longer retrievals but cheaper than Glacier - replacement for tape-style storage
+
+## S3 Lifecycle Policies and Intelligent-Tiering
+* Storage classes can be controlled via lifecycle rules, which allow for the automated transition of objects between storage classes, or in certain cases allow for the expiration of objects that are no longer required. Rules are added at a bucket level and can be neabled or disabled based on business requirements.
+
+![S3 Lifecycle](images/s3_lifecycle.png)
+
+* Objects smaller than 128 KB cannot be transitioned into INTELLIGENT_TIERING. Objects must be in the original storage class for a minimum of 30 days before transitioning them to either of the IA storage tiers. Instead of transitioning between tiers, objects can be configured to  expire after certain time perids. At the point of expiry, they are deleted from the bucket.
+* Objects can be archived into Glacier using lifecycle configurations. The objects remain inside S3, managed from S3, but Glacier is used for storage. Ibjects can be restored into S3 for temporary periods of time - after which, they are deleted. If objects are encrypted, they remain encryptred during their transition to Glacier or temporary restoration into S3.
+
+**Intelligent-Tiering:** Intelligent-Tiering is a special type of storage class designed for unknown or unpredictable access patterns. It moves objects automatically between two tiers - one designed for frequent access, the other for infrequent.
+* Objects that aren't accessed for 30 days are moved to the infrequent tier, which offers lower costs. If an object in this tier is accessed, it's moved to the frequent access tier at no cost. **Intelligent-Tiering adds a monthly automation and monitoring fee - but does away with any retrieval costs.**
+
+## Cross-Region Replication (CRR)
+
+* S3 cross-region replication (S3 CRR) is a feature that can be enabled on S3 buckets allowing one-way replication of data from a source bucket to a destination bucket in another region.
+* By default, replicated objects keep their:
+1. Storage class
+2. Object name (key)
+3. Owner
+4. Object permissions
+* Replication configuration is applied to the source bucket, and to do so requires versioning to be enabled on both buckets. Replication requires an IAM role with permissions to replicate objects. With the replication configuration, it is possible to override the storage class and object permissions as they are written to the destination.
+
+![S3 Replication](images/s3_replication.png)
+
+**Excluded from Replication**
+* System actions (lifecycle events)
+* Any existing objects from before replication is enabled
+* SSE-C encrypted objects - only SSE-S3 and (if enabled) KMS encrypted objects are supported.
+
+
